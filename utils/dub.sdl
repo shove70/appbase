@@ -1,0 +1,5 @@
+name "utils"
+description "App public infrastructure - utils"
+targetType "library"
+sourcePaths "."
+importPaths "."

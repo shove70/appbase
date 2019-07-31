@@ -1,0 +1,7 @@
+name "options"
+description "App public infrastructure - options"
+targetType "library"
+sourcePaths "."
+importPaths "."
+dependency "appbase:configuration" version="*"
+dependency "appbase:mysql" version="*"

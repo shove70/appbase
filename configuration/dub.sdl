@@ -1,0 +1,5 @@
+name "configuration"
+description "App public infrastructure - configuration"
+targetType "library"
+sourcePaths "."
+importPaths "."

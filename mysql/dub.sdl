@@ -1,0 +1,6 @@
+name "mysql"
+description "App public infrastructure - mysql"
+targetType "library"
+sourcePaths "."
+importPaths "."
+dependency "database:mysql" version="~>1.1.19"

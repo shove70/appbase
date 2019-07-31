@@ -1,0 +1,30 @@
+{
+    "authors": ["Shove"],
+    "name": "appbase",
+    "description": "App public infrastructure.",
+    "copyright": "Copyright © 2019, Shove",
+    "targetType": "library",
+    "targetName": "appbase",
+    "dependencies": {
+        "appbase:utils": "*",
+        "appbase:configuration": "*",
+        "appbase:mysql": "*",
+        "appbase:options": "*",
+        "appbase:listener": "*",
+        "appbase:security": "*"
+    },
+    "importPaths": [
+        "source"
+    ],
+    "sourcePaths": [
+        "source"
+    ],
+    "subPackages": [
+        "utils",
+        "configuration",
+        "mysql",
+        "options",
+        "listener",
+        "security"
+    ]
+}
