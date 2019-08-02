@@ -1,6 +1,6 @@
 module appbase.mysql.connection;
 
-import database.mysql;
+public import database.mysql;
 import database.mysql.pool;
 
 __gshared private ConnectionPool connectionPoolManager;

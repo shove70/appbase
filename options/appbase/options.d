@@ -5,6 +5,7 @@ import std.conv;
 import std.exception;
 import std.string;
 import std.format;
+import std.datetime;
 
 import database.mysql;
 
@@ -23,12 +24,16 @@ final class Options
     @property value(string name)
     {
         enforce!OptionsNotLoadException(_loaded, "Options is not be load().");
+
+        refresh();
         return _value.value(name);
     }
 
     auto opDispatch(string s)()
     {
         enforce!OptionsNotLoadException(_loaded, "Options is not be load().");
+
+        refresh();
         return _value.opDispatch!(s)();
     }
 
@@ -48,10 +53,10 @@ final class Options
         return _instance;
     }
 
-    void load(string tableName)
+    void load(string tableName, int expire = 0)
     {
         Connection conn = getConnection();
-        DataRows rows = query(conn, "select * from " ~ tableName ~ " where order by id;");
+        DataRows rows = query(conn, "select * from " ~ tableName ~ " order by id;");
         releaseConnection(conn);
 
         _value = new ConfigurationItem!("database")();
@@ -67,6 +72,10 @@ final class Options
         }
 
         _loaded = true;
+
+        _tableName = tableName;
+        _expire = expire;
+        _loadTime = cast(DateTime)Clock.currTime();
     }
 
 private:
@@ -97,7 +106,29 @@ private:
         cvalue._value = value;
     }
 
+    void refresh()
+    {
+        if (_expire <= 0)
+            return;
+
+        DateTime now = cast(DateTime)Clock.currTime();
+        if ((now - _loadTime).total!"minutes" > _expire)
+        {
+            synchronized (Options.classinfo)
+            {
+                if ((now - _loadTime).total!"minutes" > _expire)
+                {
+                    load(_tableName, _expire);
+                }
+            }
+        }
+    }
+
     bool _loaded;
     ConfigurationItem!("database") _value;
     __gshared Options _instance = null;
+
+    string _tableName;
+    int _expire;
+    DateTime _loadTime;
 }

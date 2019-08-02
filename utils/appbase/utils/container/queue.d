@@ -1,8 +1,8 @@
-module appbase.utils.container.stack;
+module appbase.utils.container.queue;
 
 import std.container.dlist;
 
-struct Stack(T)
+struct Queue(T)
 {
     @property bool empty() const
     {
@@ -12,11 +12,6 @@ struct Stack(T)
     @property ref T front()
     {
         return _data.front();
-    }
-
-    @property ref T back()
-    {
-        return _data.back();
     }
 
     @property size_t length()
@@ -32,10 +27,10 @@ struct Stack(T)
 
     T pop()
     {
-        assert(!_data.empty(), "Stack is empty.");
+        assert(!_data.empty(), "Queue is empty.");
 
-        T value = _data.back();
-        _data.removeBack();
+        T value = _data.front();
+        _data.removeFront();
         _size--;
 
         return value;

@@ -1,5 +1,6 @@
 module appbase.configuration;
 
+import std.traits;
 import std.array;
 import std.conv;
 import std.file;
@@ -8,6 +9,7 @@ import std.string;
 import std.format;
 import std.variant;
 import std.algorithm.searching : canFind;
+import std.algorithm.iteration : each;
 
 alias config = Configuration.getInstance;
 
@@ -56,50 +58,70 @@ package class ConfigurationValue
         return _reified_value.get!T;
     }
 
-    @property T[] values(T)()
+    @property T[] array(T)()
     {
-        if (!_listing)
+        if (!_arraying)
         {
             synchronized(ConfigurationValue.classinfo)
             {
-                if (!_listing)
+                if (!_arraying)
                 {
                     string[] t = _value.split(',');
                     t.each!((ref a) => (a = (strip(a))));
                     static if (isSomeString!T)
-                        _values = t;
+                        _array = t;
                     else static if (is(T == bool))
                     {
                         bool[] t2 = new bool[t.length];
                         t.each!((i, a) => (t2[i] = [ "true", "t", "yes", "y", "1", "-1" ].canFind(a.toLowwer)));
-                        _values = t2;
+                        _array = t2;
                     }
                     else
                     {
                         T[] t2 = new T[t.length];
                         t.each!((i, a) => (t2[i] = cast(T)a));
-                        _values = t2;
+                        _array = t2;
                     }
 
-                    _listing = true;
+                    _arraying = true;
                 }
             }
         }
 
-        return _value._values.get!T;
+        return _array.get!(T[]);
+    }
+
+    @property void default_value(T)(T value)
+    {
+        _default_value = value;
+        _defaulted = true;
+    }
+
+    @property T default_value(T)()
+    {
+        if (_defaulted)
+            return _default_value.get!T;
+        else
+            return T.init;
     }
 
 private:
 
     string _value;
     Variant _reified_value;
-    Variant _values;
+    Variant _array;
+    Variant _default_value;
 
-    bool _reified, _listing; 
+    bool _reified, _arraying, _defaulted; 
 }
 
 package class ConfigurationItem(string ConfigurationType = "file")
 {
+    this()
+    {
+        _value = new ConfigurationValue();
+    }
+
     @property value(string name)
     {
         auto v =  _map.get(name, null);
@@ -112,41 +134,66 @@ package class ConfigurationItem(string ConfigurationType = "file")
         return _value._value;
     }
 
+    @property void reified_value(T)(T value)
+    {
+        _value.reified_value = value;
+    }
+
+    @property reified_value(T)()
+    {
+        return _value.reified_value!T;
+    }
+
+    @property T[] array(T)()
+    {
+        return _value.array!T;
+    }
+
+    @property void default_value(T)(T value)
+    {
+        _value.default_value = value;
+    }
+
+    @property T default_value(T)()
+    {
+        return _value.default_value!T;
+    }
+
     auto opCast(T)()
     {
         static if (is(T == bool))
-            return as!bool(true);
+            return as!bool;
         else static if (isSomeString!T)
             return cast(T)(value());
         else static if (isNumeric!(T))
-            return as!T(T.init);
+            return as!T;
         else
             static assert(0, "Not support type.");
     }
 
-    auto as(T)(T value = T.init) if (isNumeric!(T))
+    auto as(T)() if (isNumeric!(T))
     {
         if (_value._value.length == 0)
-            return value;
+            return _value.default_value!T;
         else
             return to!T(_value._value);
     }
 
-    auto as(T: bool)(T value = T.init)
+    auto as(T: bool)()
     {
-        if ([ "true", "t", "yes", "y", "1", "-1" ].canFind(_value._value.toLowwer))
+        if ([ "true", "t", "yes", "y", "1", "-1" ].canFind(_value._value.toLower))
             return true;
         
-        if ([ "false", "f", "no", "n", "0" ].canFind(_value._value.toLowwer))
+        if ([ "false", "f", "no", "n", "0" ].canFind(_value._value.toLower))
             return false;
 
-        return value;
+        return _value.default_value!bool;
     }
 
-    auto as(T: string)(T value = T.init)
+    auto as(T: string)()
     {
         if (_value._value.length == 0)
-            return value;
+            return _value.default_value!string;
         else
             return _value._value;
     }
@@ -154,11 +201,6 @@ package class ConfigurationItem(string ConfigurationType = "file")
     auto opDispatch(string s)()
     {
         return value(s);
-    }
-
-    @property T[] values(T)()
-    {
-        return _value.values!T;
     }
 
 package:
