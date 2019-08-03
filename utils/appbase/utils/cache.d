@@ -31,6 +31,11 @@ class Cache
     {
         CacheValue item;
 
+        if (key !in _cacheContainer)
+        {
+            return defaultValue;
+        }
+
         synchronized (Cache.classinfo)
         {
             if (key !in _cacheContainer)
@@ -61,4 +66,18 @@ class Cache
 
         return item.value.get!T;
     }
+
+    static void remove(string key)
+	{
+		if (key in _cacheContainer)
+        {
+            synchronized (Cache.classinfo)
+            {
+                if (key in _cacheContainer)
+                {
+                    _cacheContainer.remove(key);
+                }
+            }
+		}
+	}
 }

@@ -43,6 +43,9 @@ package class ConfigurationValue
     ConfigurationValue opAssign(string value)
     {
         _value = value;
+        _reified = false;
+        _arraying = false;
+
         return this;
     }
 
