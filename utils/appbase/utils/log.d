@@ -13,9 +13,9 @@ struct logger
 {
     static string logFile;
 
-    static void write(string file = __FILE__, size_t line = __LINE__)(string msg)
+    static void write(string file = __FILE__, size_t line = __LINE__, Args...)(Args args)
     {
-        if (msg == string.init)
+        if (args.length == 0)
         {
             return;
         }
@@ -39,6 +39,15 @@ struct logger
                     sharedLog = new FileLogger(logFile);
                 }
             }
+        }
+
+        string msg;
+        foreach (i, arg; args)
+        {
+            msg ~= arg.to!string();
+
+            if (i > 0)
+                msg ~= ", ";
         }
 
         log(getExeName ~ "/" ~ file ~ ":" ~ line.to!string ~ ": " ~ msg);

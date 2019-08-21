@@ -12,6 +12,8 @@ import std.digest.md;
 import std.regex;
 import std.algorithm;
 import std.traits : Unqual;
+import std.zlib;
+import std.base64;
 
 string getExePath()
 {
@@ -373,6 +375,16 @@ T[] dupClassArray(T)(T[] classArray)
     }
 
     return ret;
+}
+
+string compressString(const string input)
+{
+    return Base64.encode(compress(input));
+}
+
+string uncompressString(const string input)
+{
+    return cast(string)uncompress(Base64.decode(input));
 }
 
 

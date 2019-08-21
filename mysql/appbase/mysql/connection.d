@@ -12,6 +12,11 @@ void initDBConnectionPool(string host, string user, string password, string data
         host, user, password, database, port, maxConnections, initialConnections, incrementalConnections, waitSeconds);
 }
 
+void destroyDBConnectionPool()
+{
+    connectionPoolManager.destroy();
+}
+
 Connection getConnection()
 {
     Connection conn = connectionPoolManager.getConnection();

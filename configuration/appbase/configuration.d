@@ -82,7 +82,7 @@ package class ConfigurationValue
                     else
                     {
                         T[] t2 = new T[t.length];
-                        t.each!((i, a) => (t2[i] = cast(T)a));
+                        t.each!((i, a) => (t2[i] = a.to!T));
                         _array = t2;
                     }
 
