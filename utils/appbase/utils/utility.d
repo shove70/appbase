@@ -379,12 +379,22 @@ T[] dupClassArray(T)(T[] classArray)
 
 string compressString(const string input)
 {
+    return compressString(cast(ubyte[]) input);
+}
+
+string compressString(const scope void[] input)
+{
     return Base64.encode(compress(input));
 }
 
 string uncompressString(const string input)
 {
-    return cast(string)uncompress(Base64.decode(input));
+    return cast(string) uncompressUbytes(input);
+}
+
+ubyte[] uncompressUbytes(const string input)
+{
+    return cast(ubyte[]) uncompress(Base64.decode(input));
 }
 
 
