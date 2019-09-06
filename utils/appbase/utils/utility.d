@@ -6,9 +6,11 @@ import std.string;
 import std.conv;
 import std.datetime;
 import std.array;
-import std.uuid;
+import std.uuid : randomUUID;
 import std.random;
-import std.digest.md;
+import std.digest : toHexString;
+import std.digest.md : MD5Digest;
+import std.digest.ripemd : RIPEMD160Digest;
 import std.regex;
 import std.algorithm;
 import std.traits : Unqual;
@@ -27,10 +29,7 @@ string getExeName()
 
 string genUuid()
 {
-    Xorshift192 gen;
-    gen.seed(unpredictableSeed);
-    auto uuid = randomUUID(gen);
-    return uuid.toString.replace("-", "").toUpper();
+    return randomUUID.toString.replace("-", "").toUpper();
 }
 
 string MD5(scope const(void[])[] src...)
@@ -38,7 +37,24 @@ string MD5(scope const(void[])[] src...)
     auto md5 = new MD5Digest();
     ubyte[] hash = md5.digest(src);
 
-    return toHexString(hash).toUpper();
+    return hash.toHexString!(LetterCase.upper);
+}
+
+string RIPEMD160(scope const(void[])[] src...)
+{
+    auto md = new RIPEMD160Digest();
+    ubyte[] hash = md.digest(src);
+
+    return hash.toHexString!(LetterCase.upper);
+}
+
+string Hash(int bits)(scope const(void[])[] src...)
+if (bits == 128 || bits == 160)
+{
+    static if (bits == 128)
+        return MD5(src);
+    else
+        return RIPEMD160(src);
 }
 
 ubyte[] strToByte_hex(string input)

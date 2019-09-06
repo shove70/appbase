@@ -14,7 +14,7 @@ import async.container;
 
 import appbase.utils.log;
 
-alias RequestCallback = void function(TcpClient, in ubyte[]);
+alias RequestCallback = void function(TcpClient, const scope ubyte[]);
 
 private __gshared ushort             _protocolMagic;
 private __gshared RequestCallback    _request;
@@ -53,14 +53,14 @@ void onConnected(TcpClient client) nothrow @trusted
     }());
 }
 
-void onDisConnected(int fd, string remoteAddress) nothrow @trusted
+void onDisConnected(const int fd, string remoteAddress) nothrow @trusted
 {
     collectException({
         synchronized(_lock) _queue.remove(fd);
     }());
 }
 
-void onReceive(TcpClient client, in ubyte[] data) nothrow @trusted
+void onReceive(TcpClient client, const scope ubyte[] data) nothrow @trusted
 {
     collectException({
         ubyte[] buffer;
@@ -89,7 +89,7 @@ void onReceive(TcpClient client, in ubyte[] data) nothrow @trusted
     }());
 }
 
-void onSocketError(int fd, string remoteAddress, string msg) nothrow @trusted
+void onSocketError(const int fd, string remoteAddress, string msg) nothrow @trusted
 {
     // collectException({
     //     logger.write(baseName(thisExePath) ~ " Socket Error: " ~ remoteAddress ~ ", " ~ msg);
