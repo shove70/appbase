@@ -2,7 +2,7 @@
     "authors": ["Shove"],
     "name": "appbase",
     "description": "App public infrastructure.",
-    "license": "MIT License",
+    "license": "MIT",
     "copyright": "Copyright © 2019, Shove",
     "targetType": "library",
     "targetName": "appbase",
