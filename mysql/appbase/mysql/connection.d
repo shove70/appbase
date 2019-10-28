@@ -17,7 +17,7 @@ void destroyDBConnectionPool()
     connectionPoolManager.destroy();
 }
 
-Connection getConnection()
+Connection getConnection(bool allowClientPreparedCache = false)
 {
     Connection conn = connectionPoolManager.getConnection();
     if (conn is null)
@@ -25,7 +25,7 @@ Connection getConnection()
         throw new Exception("ConnectionPool.getConnection() fail.");
     }
 
-    conn.allowClientPreparedCache = true;
+    conn.allowClientPreparedCache = allowClientPreparedCache;
     return conn;
 }
 
