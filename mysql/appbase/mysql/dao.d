@@ -39,8 +39,7 @@ ulong exec(bool Prepared = true, Params...)(Connection conn, string cmd, Params 
 {
     static if (Prepared)
     {
-        auto upd = conn.prepare(cmd);
-        conn.execute(upd, params);
+        conn.execute(cmd, params);
     }
     else
     {
