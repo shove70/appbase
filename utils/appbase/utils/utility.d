@@ -146,7 +146,7 @@ string mergeString(Params...)(Params params)
     return ret.data;
 }
 
-T as(T = int)(string src, T defaultValue)
+T as(T = int)(string src, T defaultValue = T.init)
 {
     try
     {
@@ -171,9 +171,13 @@ string dateTimeToString(DateTime dt)    // 2017-12-01 00:01:01
     return dt.date().toISOExtString() ~ " " ~ dt.timeOfDay().toISOExtString();
 }
 
-DateTime dateTimeFromString(string dt, DateTime defaultValue)
+DateTime dateTimeFromString(string dt, DateTime defaultValue = DateTime.init)
 {
-    if (dt.length > 10 && dt[10] == ' ') dt = dt.replace(" ", "T");
+    if ((dt.length > 10) && (dt[10] == ' '))
+    {
+        dt = dt.replace(" ", "T");
+    }
+
     try
     {
         return DateTime.fromISOExtString(dt);
@@ -184,7 +188,7 @@ DateTime dateTimeFromString(string dt, DateTime defaultValue)
     }
 }
 
-SysTime sysTimeFromString(string dt, SysTime defaultValue)
+SysTime sysTimeFromString(string dt, SysTime defaultValue = SysTime.init)
 {
     dt = strip(dt);
 
