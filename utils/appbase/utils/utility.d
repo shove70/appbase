@@ -15,7 +15,6 @@ import std.regex;
 import std.algorithm;
 import std.traits : Unqual;
 import std.zlib;
-import std.base64;
 
 string getExePath()
 {
@@ -27,9 +26,28 @@ string getExeName()
     return baseName(thisExePath);
 }
 
-string genUuid()
+string genUuid(const bool hasSeparator = false)
 {
-    return randomUUID.toString.replace("-", "").toUpper();
+    string str = randomUUID.toString;
+    return hasSeparator ? str : str.replace("-", "").toUpper();
+}
+
+string randomAlphanumeric(const size_t length)
+{
+    if (length <= 0)
+    {
+        return string.init;
+    }
+
+    immutable char[] chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    char[] result = new char[length];
+
+    for (size_t i = 0; i < length; i++)
+    {
+        result[i] = chars[rnd.next!byte(1, chars.length) - 1];
+    }
+
+    return cast(immutable char[])result;
 }
 
 string MD5(scope const(void[])[] src...)
@@ -268,38 +286,6 @@ bool hasCross(T)(in T[] _array, in T[] arr)
     return false;
 }
 
-T maxInArray(T)(in T[] _array)
-{
-    assert(_array.length > 0);
-
-    T v = T.min;
-    foreach (x; _array)
-    {
-        if (x > v)
-        {
-            v = x;
-        }
-    }
-
-    return v;
-}
-
-T minInArray(T)(in T[] _array)
-{
-    assert(_array.length > 0);
-
-    T v = T.max;
-    foreach (x; _array)
-    {
-        if (x < v)
-        {
-            v = x;
-        }
-    }
-
-    return v;
-}
-
 long pos(T)(in T[] _array, T _value)
 {
     foreach (k, v; _array)
@@ -404,7 +390,7 @@ string compressString(const string input)
 
 string compressString(const scope void[] input)
 {
-    return Base64.encode(compress(input));
+    return cast(string) compress(input);
 }
 
 string uncompressString(const string input)
@@ -414,7 +400,19 @@ string uncompressString(const string input)
 
 ubyte[] uncompressUbytes(const string input)
 {
-    return cast(ubyte[]) uncompress(Base64.decode(input));
+    if (input == string.init)
+    {
+        return null;
+    }
+
+    try
+    {
+        return cast(ubyte[]) uncompress(cast(ubyte[]) input);
+    }
+    catch (Exception)
+    {
+        return null;
+    }
 }
 
 
