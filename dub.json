@@ -12,7 +12,8 @@
         "appbase:mysql": "*",
         "appbase:options": "*",
         "appbase:listener": "*",
-        "appbase:security": "*"
+        "appbase:security": "*",
+        "appbase:gateway": "*"
     },
     "importPaths": [
         "source"
@@ -26,6 +27,7 @@
         "mysql",
         "options",
         "listener",
-        "security"
+        "security",
+        "gateway"
     ]
 }

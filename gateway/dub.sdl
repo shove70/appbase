@@ -1,0 +1,7 @@
+name "gateway"
+description "App public infrastructure - gateway"
+targetType "library"
+sourcePaths "."
+importPaths "."
+dependency "appbase:utils" version="*"
+dependency "crypto" version="~>0.2.13"

@@ -28,3 +28,6 @@
 
 /security/libsecurity.a
 /security/security.lib
+
+/gateway/libgateway.a
+/gateway/gateway.lib
