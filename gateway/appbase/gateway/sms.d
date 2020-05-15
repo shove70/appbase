@@ -198,6 +198,21 @@ struct Sms2
             return result;
         }
 
+        // res_body = decryptAES(res_body);
+        // JSONValue json_body;
+
+        // try
+        // {
+        //     json_body = parseJSON(res_body);
+        // }
+        // catch (Exception e)
+        // {
+        //     result[0] = -7;
+        //     result[1] = e.msg;
+
+        //     return result;
+        // }
+
         result[0] = 0;
         return result;
     }

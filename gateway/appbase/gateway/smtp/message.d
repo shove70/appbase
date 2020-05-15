@@ -68,8 +68,9 @@ struct SmtpMessage {
 	private string messageWithAttachments() const {
 		const string crlf = "\r\n";
 		return "Content-Type: text/html; charset=utf-8" ~ crlf
+            ~ "Content-Transfer-Encoding: base64" ~ crlf
 			~ crlf
-			~ message ~ crlf
+			~ cast(string) Base64.encode(cast(ubyte[]) message) ~ crlf
 			~ crlf ~ "--" ~ SmtpMessage.boundary ~ crlf;
 	}
 
