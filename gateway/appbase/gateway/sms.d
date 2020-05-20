@@ -7,10 +7,10 @@ import std.net.curl;
 import std.uri;
 import std.json;
 import std.typecons : Tuple;
-import std.xml;
 
 import crypto.aes;
 import appbase.utils;
+import appbase.utils.xml;
 
 struct Sms1
 {
