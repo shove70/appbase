@@ -79,7 +79,7 @@ alias logger = Logger;
 struct LoggerEx
 {
     private __gshared Date today;
-    private __gshared FileLogger[ubyte] fl;
+    private __gshared FileLogger[size_t] fl;
 
     private __gshared Mutex _mutex;
  
@@ -93,34 +93,37 @@ struct LoggerEx
         string funcName = __FUNCTION__,
         string prettyFuncName = __PRETTY_FUNCTION__,
         string moduleName = __MODULE__,
-        Args...)(ubyte classification, Args args)
+        T = size_t,
+        Args...)(T classification, Args args)
     {
         if (args.length == 0)
         {
             return;
         }
 
+        const size_t _class = cast(size_t) classification;
         DateTime dt = now;
-        if ((dt.date != today) || (classification !in fl) || (fl[classification] is null))
+
+        if ((dt.date != today) || (_class !in fl) || (fl[_class] is null))
         {
             synchronized (_mutex)
             {
-                if ((dt.date != today) || (classification !in fl) || (fl[classification] is null))
+                if ((dt.date != today) || (_class !in fl) || (fl[_class] is null))
                 {
-                    if ((classification in fl) && (fl[classification] !is null))
+                    if ((_class in fl) && (fl[_class] !is null))
                     {
-                        fl[classification].file.flush();
-                        fl[classification].file.close();
+                        fl[_class].file.flush();
+                        fl[_class].file.close();
                     }
 
                     today = dt.date;
-                    const auto filename = buildPath(getExePath(), "log", dt.year.to!string, dt.date.toISOString(), classification.to!string ~ ".log");
-                    fl[classification] = new FileLogger(filename, LogLevel.all, CreateFolder.yes);
+                    const auto filename = buildPath(getExePath(), "log", dt.year.to!string, dt.date.toISOString(), _class.to!string ~ ".log");
+                    fl[_class] = new FileLogger(filename, LogLevel.all, CreateFolder.yes);
                 }
             }
         }
 
-        fl[classification].log!(line, file, funcName, prettyFuncName, moduleName)(getExeName, ": ", args);
+        fl[_class].log!(line, file, funcName, prettyFuncName, moduleName)(getExeName, ": ", args);
     }
 
     static void flush(const bool closeFile = false)
