@@ -1,16 +1,14 @@
 module appbase.listener;
 
 import core.thread;
-import core.sync.mutex;
 
-import std.bitmanip;
 import std.socket;
 import std.file;
 import std.path;
 import std.exception;
+import std.parallelism : totalCPUs;
 
 import async;
-import async.container;
 
 import appbase.utils.log;
 
@@ -20,16 +18,19 @@ private __gshared ushort             _protocolMagic;
 private __gshared RequestCallback    _request;
 private __gshared OnSendCompleted    _onSendCompleted;
 
-private __gshared ByteBuffer[int]    _queue;
-private __gshared Mutex              _lock;
-
 private __gshared ThreadPool         _businessPool;
 
-void startServer(const ushort port, const int workThreads, const ushort protocolMagic,
+deprecated("Will be removed in the next release.")
+void startServer(const ushort port, const int businessThreads, const ushort protocolMagic,
     RequestCallback onRequest, OnSendCompleted onSendCompleted)
 {
-    _lock            = new Mutex();
-    _businessPool    = new ThreadPool(workThreads);
+    startServer(port, protocolMagic, onRequest, onSendCompleted, businessThreads, 0);
+}
+
+void startServer(const ushort port, const ushort protocolMagic,
+    RequestCallback onRequest, OnSendCompleted onSendCompleted, const int businessThreads = 0, const int workerThreads = 0)
+{
+    _businessPool    = new ThreadPool((businessThreads < 1) ? (totalCPUs * 2 + 2) : businessThreads);
 
     _protocolMagic   = protocolMagic;
     _request         = onRequest;
@@ -39,7 +40,8 @@ void startServer(const ushort port, const int workThreads, const ushort protocol
     listener.bind(new InternetAddress("0.0.0.0", port));
     listener.listen(1024);
 
-    EventLoop loop = new EventLoop(listener, &onConnected, &onDisConnected, &onReceive, _onSendCompleted, &onSocketError);
+    Codec codec = new Codec(CodecType.SizeGuide, protocolMagic);
+    EventLoop loop = new EventLoop(listener, &onConnected, &onDisConnected, &onReceive, _onSendCompleted, &onSocketError, codec, workerThreads);
     loop.run();
 }
 
@@ -47,45 +49,21 @@ private:
 
 void onConnected(TcpClient client) nothrow @trusted
 {
-    collectException({
-        synchronized(_lock) _queue[client.fd] = ByteBuffer();
-        //writeln("New connection: ", client.remoteAddress().toString());
-    }());
+    // collectException({
+    //     writeln("New connection: ", client.remoteAddress().toString());
+    // }());
 }
 
 void onDisConnected(const int fd, string remoteAddress) nothrow @trusted
 {
-    collectException({
-        synchronized(_lock) _queue.remove(fd);
-    }());
+    // collectException({
+    // }());
 }
 
 void onReceive(TcpClient client, const scope ubyte[] data) nothrow @trusted
 {
     collectException({
-        ubyte[] buffer;
-
-        synchronized(_lock)
-        {
-            if (client.fd !in _queue)
-            {
-                logger.write(baseName(thisExePath) ~ " Socket Error: " ~ client.remoteAddress.toString() ~ ", queue key not exists!");
-                return;
-            }
-
-            _queue[client.fd] ~= data;
-
-            size_t len = findCompleteMessage(client, _queue[client.fd]);
-            if (len == 0)
-            {
-                return;
-            }
-
-            buffer = _queue[client.fd][0 .. len];
-            _queue[client.fd].popFront(len);
-        }
-
-        _businessPool.run!_request(client, buffer);
+        _businessPool.run!_request(client, data);
     }());
 }
 
@@ -94,32 +72,4 @@ void onSocketError(const int fd, string remoteAddress, string msg) nothrow @trus
     // collectException({
     //     logger.write(baseName(thisExePath) ~ " Socket Error: " ~ remoteAddress ~ ", " ~ msg);
     // }());
-}
-
-size_t findCompleteMessage(TcpClient client, ref ByteBuffer data)
-{
-    if (data.length < (ushort.sizeof + int.sizeof))
-    {
-        return 0;
-    }
-
-    ubyte[] head = data[0 .. ushort.sizeof + int.sizeof];
-
-    if (head.peek!ushort(0) != _protocolMagic)
-    {
-        string remoteAddress = client.remoteAddress().toString();
-        client.forceClose();
-        //logger.write(baseName(thisExePath) ~ " Socket Error: " ~ remoteAddress ~ ", An unusual message data!");
-
-        return 0;
-    }
-
-    size_t len = head.peek!int(ushort.sizeof);
-
-    if (data.length < (len + (ushort.sizeof + int.sizeof)))
-    {
-        return 0;
-    }
-
-    return len + (ushort.sizeof + int.sizeof);
 }
