@@ -3,7 +3,7 @@
     "name": "appbase",
     "description": "App public infrastructure.",
     "license": "MIT",
-    "copyright": "Copyright © 2020, Shove",
+    "copyright": "Copyright © 2017-2020, Shove",
     "targetType": "library",
     "targetName": "appbase",
     "dependencies": {
