@@ -14,11 +14,12 @@ import appbase.utils.log;
 
 alias RequestCallback = void function(TcpClient, const scope ubyte[]);
 
-private __gshared ushort             _protocolMagic;
-private __gshared RequestCallback    _request;
-private __gshared OnSendCompleted    _onSendCompleted;
+private __gshared EventLoop       _loop;
+private __gshared ushort          _protocolMagic;
+private __gshared RequestCallback _request;
+private __gshared OnSendCompleted _onSendCompleted;
 
-private __gshared ThreadPool         _businessPool;
+private __gshared ThreadPool _businessPool;
 
 deprecated("Will be removed in the next release.")
 void startServer(const ushort port, const int businessThreads, const ushort protocolMagic,
@@ -47,8 +48,16 @@ void startServer(const string host, const ushort port, const ushort protocolMagi
     listener.listen(1024);
 
     Codec codec = new Codec(CodecType.SizeGuide, protocolMagic);
-    EventLoop loop = new EventLoop(listener, &onConnected, &onDisConnected, &onReceive, _onSendCompleted, &onSocketError, codec, workerThreads);
-    loop.run();
+    _loop = new EventLoop(listener, &onConnected, &onDisConnected, &onReceive, _onSendCompleted, &onSocketError, codec, workerThreads);
+    _loop.run();
+}
+
+void stopServer()
+{
+    if (_loop !is null)
+    {
+        _loop.stop();
+    }
 }
 
 private:
