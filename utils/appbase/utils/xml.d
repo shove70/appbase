@@ -2956,7 +2956,7 @@ private alias Err = CheckException;
 
 private
 {
-    inout(T) toType(T)(inout Object o)
+    inout(T) toType(T)(return inout Object o) @safe
     {
         T t = cast(T)(o);
         if (t is null)
